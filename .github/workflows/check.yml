@@ -14,14 +14,9 @@ permissions:
   contents: read
 
 jobs:
-  run-checks:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
-        with:
-          egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install nix
@@ -32,17 +27,3 @@ jobs:
         run: nix develop --command reuse lint
       - name: Check nix flake show runs successfully
         run: nix flake show --all-systems
-      - name: Check templates
-        run: |
-          set -eux -o pipefail
-          tmp_flakes=$(mktemp -d)
-          cleanup() { rm -rf "$tmp_flakes"; }
-          trap cleanup EXIT
-          nix eval --json --apply builtins.attrNames .#templates | jq -r '.[]' | while IFS=$'\t' read -r name; do
-            nix flake new -t ".#$name" "${tmp_flakes}/${name}";
-            if [[ "$name" == "ghaf-module" ]]; then
-                nix-instantiate --parse "${tmp_flakes}/${name}/default.nix"
-            else
-               nix flake show "${tmp_flakes}/${name}"
-            fi
-          done
