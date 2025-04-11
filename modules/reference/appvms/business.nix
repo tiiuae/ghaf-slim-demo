@@ -165,7 +165,8 @@
           firewall.enable = true;
 
           # Enable WireGuard GUI
-          wireguard-gui.enable = config.ghaf.reference.services.wireguard-gui;
+          #wireguard-gui.enable = config.ghaf.reference.services.wireguard-gui;
+          wireguard-gui.enable = false;
 
         };
       }
