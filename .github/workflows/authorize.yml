@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2025 TII (SSRC) and the Ghaf contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: authorize
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug
+        run: |
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.repository: ${{ github.repository }}"
+          echo "github.event.pull_request.head.repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
+          echo "github.actor: ${{ github.actor }}"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.event.pull_request.head.sha: ${{ github.event.pull_request.head.sha }}"
+  is-org-member:
+    # Skip running in forked repos, since it would fail anyway:
+    if: ${{ github.repository == 'tiiuae/ghaf-slim-demo' }}
+    runs-on: ubuntu-latest
+    outputs:
+      is_org_member: ${{ steps.check-is-org-member.outputs.is_org_member }}
+    environment: "internal"
+    steps:
+      - name: Check identity
+        id: check-is-org-member
+        shell: bash
+        run: |
+          is_org_member='False'
+          if .github/is-org-member.sh -o tiiuae -u ${{ github.actor }} -t ${{ secrets.READ_ORG_MEMBERS }};
+          then
+            is_org_member='True'
+          fi
+          echo "is_org_member=$is_org_member"
+          echo "is_org_member=$is_org_member" >>"$GITHUB_OUTPUT"
+  authorize:
+    needs: [is-org-member]
+    # Authorization passes without approval if:
+    # - The event is not a pull request (e.g. push to main) or
+    # - Pull request comes from another branch in the same repo or
+    # - Github actor is a member of tiiuae github org
+    # Otherwise, the workflow requires manual approval from a maintainer
+    # as configured in the 'external' github environment
+    environment: ${{
+      ( github.event_name != 'pull_request_target' ||
+        github.event.pull_request.head.repo.full_name == github.repository ||
+        needs.is-org-member.outputs.is_org_member == 'True' )
+      && 'internal' || 'external' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Auth OK"
+  run-authorized:
+    needs: [authorize]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
+      - name: Run-authorized
+        run: |
+          echo "[+] Apt update:"
+          sudo apt-get update; sudo apt-get install -y git
+          echo "[+] Git log:"
+          git log --oneline -n5
+          echo "[+] Access secret: ${{ secrets.TEST_SECRET }}"
