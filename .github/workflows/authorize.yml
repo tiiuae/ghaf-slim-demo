@@ -4,9 +4,7 @@
 
 name: authorize
 
-permissions:
-  contents: read
-
+permissions: {}
 
 on:
   workflow_call:
@@ -24,18 +22,6 @@ on:
         value: ${{ jobs.authorize.outputs.result }}
 
 jobs:
-  debug:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug
-        run: |
-          echo "github.event_name: ${{ github.event_name }}"
-          echo "github.repository: ${{ github.repository }}"
-          echo "github.event.pull_request.head.repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
-          echo "github.actor: ${{ github.actor }}"
-          echo "github.ref: ${{ github.ref }}"
-          echo "github.event.pull_request.head.sha: ${{ github.event.pull_request.head.sha }}"
-          echo "inputs.github-org: ${{ inputs.github-org }}"
   is-org-member:
     runs-on: ubuntu-latest
     outputs:
