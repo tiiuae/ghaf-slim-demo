@@ -37,8 +37,6 @@ jobs:
           echo "github.event.pull_request.head.sha: ${{ github.event.pull_request.head.sha }}"
           echo "inputs.github-org: ${{ inputs.github-org }}"
   is-org-member:
-    # Skip running in forked repos, since it would fail anyway:
-    if: ${{ github.repository == 'tiiuae/ghaf-slim-demo' }}
     runs-on: ubuntu-latest
     outputs:
       is_org_member: ${{ steps.check-is-org-member.outputs.is_org_member }}
@@ -67,7 +65,7 @@ jobs:
     # Authorization passes without approval if:
     # - The event is not a pull request (e.g. push to main) or
     # - Pull request comes from another branch in the same repo or
-    # - Github actor is a member of tiiuae github org
+    # - Github actor is a member of 'github-org' organization
     # Otherwise, the workflow requires manual approval from a maintainer
     # as configured in the 'external' github environment
     environment: ${{

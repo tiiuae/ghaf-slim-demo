@@ -86,6 +86,9 @@ jobs:
   authorize:
     needs: [eval]
     uses: ./.github/workflows/authorize.yml
+    # Skip running in forked repositories, since the authorization would fail
+    # due to missing secret:
+    if: ${{ github.repository == 'tiiuae/ghaf-slim-demo' }}
     with:
       github-org: tiiuae
     secrets:
