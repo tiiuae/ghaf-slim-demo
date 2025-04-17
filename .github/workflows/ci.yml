@@ -67,7 +67,8 @@ jobs:
         run: |
           nix run --inputs-from .# nixpkgs#nix-fast-build -- \
             --remote '${{ vars.BUILDER_X86 }}' \
-            --flake '.#checks' \
+            --flake '.#checks.x86_64-linux' \
             --always-upload-source \
+            --eval-workers 10 \
             --option accept-flake-config true \
             --no-download --skip-cached --no-nom
