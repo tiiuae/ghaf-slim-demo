@@ -23,6 +23,10 @@
             meta.description = "Ghaf development environment";
             packages =
               [
+                # parallel_env requires 'compgen' function, which is available
+                # in bashInteractive, but not bash
+                pkgs.bashInteractive
+                pkgs.parallel
                 pkgs.jq
                 pkgs.mdbook
                 pkgs.nix-eval-jobs
