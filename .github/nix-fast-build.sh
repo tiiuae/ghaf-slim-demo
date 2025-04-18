@@ -9,29 +9,6 @@
 
 ################################################################################
 
-print_err () {
-    printf "${RED}Error:${NONE} %b\n" "$1" >&2
-}
-
-exit_unless_command_exists () {
-    if ! command -v "$1" &>/dev/null; then
-        print_err "command '$1' is not installed (Hint: are you inside a nix-shell?)"
-        exit 1
-    fi
-}
-
-################################################################################
-
-# Colorize output if stdout is to a terminal (and not to pipe or file)
-RED='' NONE=''
-if [ -t 1 ]; then RED='\033[1;31m'; NONE='\033[0m'; fi
-exit_unless_command_exists parallel
-
-# https://www.gnu.org/software/parallel/env_parallel.html
-# shellcheck source=/dev/null
-source env_parallel.bash
-env_parallel --session
-
 # Set shell options after env_parallel as it would otherwise fail
 set -e # exit immediately if a command fails
 set -E # exit immediately if a command fails (subshells)
@@ -84,8 +61,8 @@ usage () {
     echo "  with ssh key '~/.ssh/my_key':"
     echo ""
     echo "    $MYNAME \\"
-    echo "      -f '^checks\.x86_64-linux\..*debug'\\"
-    echo "      -o '--remote me@my_builder\\"
+    echo "      -f '^checks\.x86_64-linux\..*debug' \\"
+    echo "      -o '--remote me@my_builder \\"
     echo "          --remote-ssh-option IdentityFile ~/.ssh/my_key'"
     echo ""
     echo "  --"
@@ -96,12 +73,23 @@ usage () {
     echo "  authenticating as user 'me':"
     echo ""
     echo "    $MYNAME \\"
-    echo "      -f '^checks\.aarch64-linux\.((?!release).)*$'\\"
+    echo "      -f '^checks\.aarch64-linux\.((?!release).)*$' \\"
     echo "      -o '--remote me@my_builder"
     echo ""
 }
 
 ################################################################################
+
+print_err () {
+    printf "${RED}Error:${NONE} %b\n" "$1" >&2
+}
+
+exit_unless_command_exists () {
+    if ! command -v "$1" &>/dev/null; then
+        print_err "command '$1' is not installed (Hint: are you inside a nix-shell?)"
+        exit 1
+    fi
+}
 
 on_exit () {
     echo "[+] Removing tmpdir: '$TMPDIR'"
@@ -110,6 +98,7 @@ on_exit () {
 
 filter_targets () {
     filter="$1"
+    typeset -n ref_TARGETS=$2 # argument $2 is passed as reference
     # Output all flake output names
     nix flake show --all-systems --json |\
       jq  '[paths(scalars) as $path | { ($path|join(".")): getpath($path) }] | add' \
@@ -121,19 +110,22 @@ filter_targets () {
     then
         print_err "No flake outputs match filter: '$filter'"; exit 1
     fi
-    cat "$TMPDIR/out_filtered"
+    # Read lines from $TMPDIR/out_filtered to array 'ref_TARGETS' which
+    # is passed as reference, so this changes the caller's variable
+    # shellcheck disable=SC2034# ref_TARGETS is not unused
+    readarray -t ref_TARGETS<"$TMPDIR/out_filtered"
 }
 
 argparse () {
     # Parse arguments
-    DEBUG="false"; OPTS=""; FILTER=""; TARGETS=();
+    OPTS=""; FILTER=""; TARGETS=();
     OPTIND=1
     while getopts "hvo:f:t:" copt; do
         case "${copt}" in
             h)
                 usage; exit 0 ;;
             v)
-                DEBUG="true"; set -x ;;
+                set -x ;;
             o)
                 OPTS="$OPTARG" ;;
             f)
@@ -157,7 +149,7 @@ argparse () {
     echo "[+] OPTS='$OPTS'"
     if [ -n "$FILTER" ]; then
         echo "[+] FILTER='$FILTER'"
-        TARGETS=("$(filter_targets "$FILTER")")
+        filter_targets "$FILTER" TARGETS
     fi
     if (( ${#TARGETS[@]} != 0 )); then
         echo "[+] TARGETS=${TARGETS[*]}"
@@ -167,11 +159,11 @@ argparse () {
 ################################################################################
 
 nix_fast_build () {
-    target=".#$1"
+    opts="$1"
+    target=".#$2"
     tfmt="%H:%M:%S"
-    [ "$DEBUG" = "true" ] && set -x
     echo ""
-    echo "[+] $(date +"$tfmt") Start: nix-fast-build '$target'"
+    echo "[+] $(date +"$tfmt") Start: nix-fast-build '$target' ($opts)"
     # Do not use ssh ControlMaster as it might cause issues with
     # nix-fast-build the way we use it. SSH multiplexing needs to be disabled
     # both by exporting `NIX_SSHOPTS` and `--remote-ssh-option` since
@@ -181,19 +173,18 @@ nix_fast_build () {
     # we need to export the relevant option in `NIX_SSHOPTS` to completely
     # disable ssh multiplexing:
     export NIX_SSHOPTS="-o ControlMaster=no"
-    # shellcheck disable=SC2086 # intented word splitting of $OPTS
+    # shellcheck disable=SC2086 # intented word splitting of $opts
     nix-fast-build \
       --flake "$target" \
       --always-upload-source \
       --eval-workers 4 \
       --option accept-flake-config true \
       --remote-ssh-option ControlMaster no \
-      --remote-ssh-option StrictHostKeyChecking no \
       --remote-ssh-option ConnectTimeout 10 \
       --no-download \
       --skip-cached \
       --no-nom \
-      $OPTS \
+      $opts \
       2>&1
     ret="$?"
     echo "[+] $(date +"$tfmt") Done: nix-fast-build '$target' (exit code: $ret)"
@@ -206,10 +197,14 @@ nix_fast_build () {
 ################################################################################
 
 main () {
+    # Colorize output if stdout is to a terminal (and not to pipe or file)
+    RED='' NONE=''
+    if [ -t 1 ]; then RED='\033[1;31m'; NONE='\033[0m'; fi
     # Error out if following commands are not available
     exit_unless_command_exists grep
-    exit_unless_command_exists sed
     exit_unless_command_exists nix-fast-build
+    exit_unless_command_exists parallel
+    exit_unless_command_exists sed
     # Parse arguments
     argparse "$@"
     # Remove TMPDIR on exit
@@ -217,16 +212,12 @@ main () {
     echo "[+] Using tmpdir: '$TMPDIR'"
     # Build TARGETS with nix-fast-build
     echo "[+] Running builds, this will take a while..."
-    # Don't print out the full 'env_parallel' environment even if DEBUG=true
-    set +x
+    jobs=5
     # Run the function 'nix_fast_build' for each flake target in TARGETS[]
     # array. Each instance of nix_fast_build will run in its own process.
-    # We limit the maximum number of concurrent processes to '$jobs' and
-    # terminate the execution of all jobs immediately if one job fails
-    # (--halt 2). Keep-order (-k) and line-buffer (--lb) keep the output
-    # logs readable.
-    jobs=1
-    env_parallel --will-cite -j"$jobs" --halt 2 -k --lb nix_fast_build ::: "${TARGETS[@]}"
+    # Limit the maximum number of concurrent processes to $jobs:
+    export -f nix_fast_build
+    parallel -j"$jobs" -i bash -c "nix_fast_build '$OPTS' {}" -- "${TARGETS[@]}"
 }
 
 main "$@"
