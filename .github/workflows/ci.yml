@@ -30,7 +30,7 @@ jobs:
 
   authorize:
     uses: ./.github/workflows/authorize.yml
-    # Skip running in forked repositories, since the authorization would fail
+    # Skip running in forked repositories, since the workflow run would fail
     # due to missing repository secret(s):
     if: ${{ github.repository == 'tiiuae/ghaf-slim-demo' }}
     with:
@@ -38,7 +38,7 @@ jobs:
     secrets:
       read-org-members: ${{ secrets.READ_ORG_MEMBERS }}
 
-  checks:
+  check:
     runs-on: ubuntu-latest
     needs: [authorize]
     if: needs.authorize.outputs.result == 'authorized'
@@ -56,19 +56,47 @@ jobs:
         run: nix develop --command reuse lint
       - name: Check nix flake show runs successfully
         run: nix flake show --all-systems
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [authorize]
+    if: needs.authorize.outputs.result == 'authorized'
+    timeout-minutes: 360
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64-linux
+          - arch: aarch64-linux
+    concurrency:
+      # Cancel any in-progress workflow runs from the same PR or branch,
+      # allowing matrix jobs to run concurrently:
+      group: ${{ github.workflow }}.${{ github.event.pull_request.number || github.ref }}.${{ matrix.arch }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
+      - name: Install nix
+        uses: cachix/install-nix-action@d1ca217b388ee87b2507a9a93bf01368bde7cec2 # v31
       - name: Init ssh-agent
         uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
           ssh-private-key: ${{ secrets.BUILDER_SSH_KEY }}
-      - name: Add builder to ssh_known_hosts
+      - name: Add builders to ssh_known_hosts
         run: |
           sudo sh -c "echo '${{ vars.BUILDER_SSH_KNOWN_HOST }}' >>/etc/ssh/ssh_known_hosts"
       - name: Build on the remote builder
         run: |
-          nix run --inputs-from .# nixpkgs#nix-fast-build -- \
-            --remote '${{ vars.BUILDER_X86 }}' \
-            --flake '.#checks.x86_64-linux' \
-            --always-upload-source \
-            --eval-workers 10 \
-            --option accept-flake-config true \
-            --no-download --skip-cached --no-nom
+          if [ "${{ matrix.arch }}" == "x86_64-linux" ]; then
+            OPTS="--remote '${{ vars.BUILDER_X86 }}'"
+            FILTER='checks\.x86_64-linux\..*'
+          elif [ "${{ matrix.arch }}" == "aarch64-linux" ]; then
+            OPTS="--remote '${{ vars.BUILDER_AARCH64 }}'"
+            FILTER='checks\.aarch64-linux\..*'
+          else
+            echo "::error::Unknown architecture: '${{ matrix.arch }}'"
+            exit 1
+          fi
+          nix develop --command bash -c ".github/nix-fast-build.sh -f '$FILTER' -o '$OPTS'"
