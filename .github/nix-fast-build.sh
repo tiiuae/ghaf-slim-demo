@@ -162,6 +162,7 @@ nix_fast_build () {
     tfmt="%H:%M:%S"
     echo ""
     echo "[+] $(date +"$tfmt") Start: nix-fast-build '$target'"
+    echo "OPTS: '$OPTS'"
     # Do not use ssh ControlMaster as it might cause issues with
     # nix-fast-build the way we use it. SSH multiplexing needs to be disabled
     # both by exporting `NIX_SSHOPTS` and `--remote-ssh-option` since
