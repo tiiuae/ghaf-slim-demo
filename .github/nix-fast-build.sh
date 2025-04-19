@@ -178,7 +178,6 @@ nix_fast_build () {
       --eval-workers 4 \
       --option accept-flake-config true \
       --remote-ssh-option ControlMaster no \
-      --remote-ssh-option StrictHostKeyChecking no \
       --remote-ssh-option ConnectTimeout 10 \
       --no-download \
       --skip-cached \
@@ -211,7 +210,7 @@ main () {
     echo "[+] Using tmpdir: '$TMPDIR'"
     # Build TARGETS with nix-fast-build
     echo "[+] Running builds, this will take a while..."
-    jobs=1
+    jobs=5
     # Run the function 'nix_fast_build' for each flake target in TARGETS[]
     # array. Each instance of nix_fast_build will run in its own process.
     # Limit the maximum number of concurrent processes to $jobs:
