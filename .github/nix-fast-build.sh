@@ -159,11 +159,10 @@ argparse () {
 ################################################################################
 
 nix_fast_build () {
-    opts="$1"
-    target=".#$2"
+    target=".#$1"
     tfmt="%H:%M:%S"
     echo ""
-    echo "[+] $(date +"$tfmt") Start: nix-fast-build '$target' ($opts)"
+    echo "[+] $(date +"$tfmt") Start: nix-fast-build '$target' ($OPTS)"
     # Do not use ssh ControlMaster as it might cause issues with
     # nix-fast-build the way we use it. SSH multiplexing needs to be disabled
     # both by exporting `NIX_SSHOPTS` and `--remote-ssh-option` since
@@ -173,7 +172,7 @@ nix_fast_build () {
     # we need to export the relevant option in `NIX_SSHOPTS` to completely
     # disable ssh multiplexing:
     export NIX_SSHOPTS="-o ControlMaster=no"
-    # shellcheck disable=SC2086 # intented word splitting of $opts
+    # shellcheck disable=SC2086 # intented word splitting of $OPTS
     nix-fast-build \
       --flake "$target" \
       --always-upload-source \
@@ -184,7 +183,7 @@ nix_fast_build () {
       --no-download \
       --skip-cached \
       --no-nom \
-      $opts \
+      $OPTS \
       2>&1
     ret="$?"
     echo "[+] $(date +"$tfmt") Done: nix-fast-build '$target' (exit code: $ret)"
@@ -216,8 +215,8 @@ main () {
     # Run the function 'nix_fast_build' for each flake target in TARGETS[]
     # array. Each instance of nix_fast_build will run in its own process.
     # Limit the maximum number of concurrent processes to $jobs:
-    export -f nix_fast_build
-    parallel -j"$jobs" -i bash -c "nix_fast_build '$OPTS' {}" -- "${TARGETS[@]}"
+    export -f nix_fast_build; export OPTS;
+    parallel --will-cite -j"$jobs" --halt 2 -k --lb nix_fast_build ::: "${TARGETS[@]}"
 }
 
 main "$@"
