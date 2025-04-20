@@ -25,7 +25,7 @@
               [
                 pkgs.jq
                 pkgs.mdbook
-                pkgs.parallel
+                pkgs.moreutils # cmd 'parallel' from moreutils
                 pkgs.nix-eval-jobs
                 pkgs.nix-fast-build
                 pkgs.nix-output-monitor

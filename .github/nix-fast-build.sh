@@ -216,7 +216,7 @@ main () {
     # array. Each instance of nix_fast_build will run in its own process.
     # Limit the maximum number of concurrent processes to $jobs:
     export -f nix_fast_build; export OPTS;
-    parallel --will-cite -j"$jobs" --halt 2 -k --lb nix_fast_build ::: "${TARGETS[@]}"
+    parallel -j"$jobs" -i bash -c "nix_fast_build {}" -- "${TARGETS[@]}"
 }
 
 main "$@"
