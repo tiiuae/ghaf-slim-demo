@@ -61,7 +61,7 @@ usage () {
     echo "  with ssh key '~/.ssh/my_key':"
     echo ""
     echo "    $MYNAME \\"
-    echo "      -f '^checks\.x86_64-linux\..*debug' \\"
+    echo "      -f '^checks\.x86_64-linux\..*debug$' \\"
     echo "      -o '--remote me@my_builder \\"
     echo "          --remote-ssh-option IdentityFile ~/.ssh/my_key'"
     echo ""
@@ -106,13 +106,13 @@ filter_targets () {
     # Tidy: remove leading spaces and quotes, keep only '.name' attributes
     sed -n -E "s/^.*\"(\S*).name\".*$/\1/p" "$TMPDIR/all" > "$TMPDIR/out_names"
     # Apply the 'filter' argument
-    if ! grep -Po "${filter}" "$TMPDIR/out_names" | sort | uniq >"$TMPDIR/out_filtered";
+    if ! grep -P "${filter}" "$TMPDIR/out_names" | sort | uniq >"$TMPDIR/out_filtered";
     then
         print_err "No flake outputs match filter: '$filter'"; exit 1
     fi
     # Read lines from $TMPDIR/out_filtered to array 'ref_TARGETS' which
     # is passed as reference, so this changes the caller's variable
-    # shellcheck disable=SC2034# ref_TARGETS is not unused
+    # shellcheck disable=SC2034 # ref_TARGETS is not unused
     readarray -t ref_TARGETS<"$TMPDIR/out_filtered"
 }
 
@@ -152,7 +152,8 @@ argparse () {
         filter_targets "$FILTER" TARGETS
     fi
     if (( ${#TARGETS[@]} != 0 )); then
-        echo "[+] TARGETS=${TARGETS[*]}"
+        echo "[+] TARGETS:"
+        printf '  %s\n' "${TARGETS[@]}"
     fi
 }
 
@@ -160,9 +161,9 @@ argparse () {
 
 nix_fast_build () {
     target=".#$1"
-    tfmt="%H:%M:%S"
-    echo ""
-    echo "[+] $(date +"$tfmt") Start: nix-fast-build '$target' ($OPTS)"
+    timer_begin=$(date +%s)
+    out="$TMPDIR/$(date +%s%N).log"
+    echo "[+] $(date +"%H:%M:%S") Start: nix-fast-build '$target'"
     # Do not use ssh ControlMaster as it might cause issues with
     # nix-fast-build the way we use it. SSH multiplexing needs to be disabled
     # both by exporting `NIX_SSHOPTS` and `--remote-ssh-option` since
@@ -184,14 +185,22 @@ nix_fast_build () {
       --skip-cached \
       --no-nom \
       $OPTS \
-      2>&1
+      >"$out" 2>&1
     ret="$?"
-    echo "[+] $(date +"$tfmt") Done: nix-fast-build '$target' (exit code: $ret)"
+    lapse=$(( $(date +%s) - timer_begin ))
+    trace="[+] $(date +"%H:%M:%S") Stop: nix-fast-build '$target' (took ${lapse}s; exit $ret)"
+    if [ "$ret" = "1" ]; then
+        # On error, also print the logs from nix-fast-build (append to out)
+        echo "$trace" >>"$out"
+    else
+        # On success, only print the traces from this function (overwrite out)
+        echo "$trace" >"$out"
+    fi
+    cat "$out"
     # 'nix_fast_build' is run in its own process. Below, we set the
     # process exit status
     exit $ret
 }
-
 
 ################################################################################
 
@@ -210,12 +219,12 @@ main () {
     trap on_exit EXIT
     echo "[+] Using tmpdir: '$TMPDIR'"
     # Build TARGETS with nix-fast-build
-    echo "[+] Running builds, this will take a while..."
+    echo "[+] Running builds ..."
     jobs=5
     # Run the function 'nix_fast_build' for each flake target in TARGETS[]
     # array. Each instance of nix_fast_build will run in its own process.
     # Limit the maximum number of concurrent processes to $jobs:
-    export -f nix_fast_build; export OPTS;
+    export -f nix_fast_build; export OPTS TMPDIR;
     parallel -j"$jobs" -i bash -c "nix_fast_build {}" -- "${TARGETS[@]}"
 }
 
