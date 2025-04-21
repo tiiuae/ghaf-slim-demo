@@ -33,6 +33,7 @@ jobs:
         shell: bash
         # More details: https://docs.github.com/en/rest/orgs/members
         run: |
+          echo "Test: modified authorize.yml from fork"
           is_org_member='False'
           response=$(curl -L -o /dev/null -w "%{http_code}" \
             -H "Accept: application/vnd.github+json" \
