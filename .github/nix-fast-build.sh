@@ -162,7 +162,6 @@ argparse () {
 nix_fast_build () {
     target=".#$1"
     timer_begin=$(date +%s)
-    out="$TMPDIR/$(date +%s%N).log"
     echo "[+] $(date +"%H:%M:%S") Start: nix-fast-build '$target'"
     # Do not use ssh ControlMaster as it might cause issues with
     # nix-fast-build the way we use it. SSH multiplexing needs to be disabled
@@ -184,18 +183,10 @@ nix_fast_build () {
       --skip-cached \
       --no-nom \
       $OPTS \
-      >"$out" 2>&1
+      2>&1
     ret="$?"
     lapse=$(( $(date +%s) - timer_begin ))
-    trace="[+] $(date +"%H:%M:%S") Stop: nix-fast-build '$target' (took ${lapse}s; exit $ret)"
-    if [ "$ret" = "1" ]; then
-        # On error, also print the logs from nix-fast-build (append to out)
-        echo "$trace" >>"$out"
-    else
-        # On success, only print the traces from this function (overwrite out)
-        echo "$trace" >"$out"
-    fi
-    cat "$out"
+    echo "[+] $(date +"%H:%M:%S") Stop: nix-fast-build '$target' (took ${lapse}s; exit $ret)"
     # 'nix_fast_build' is run in its own process. Below, we set the
     # process exit status
     exit $ret
@@ -224,7 +215,7 @@ main () {
     # array. Each instance of nix_fast_build will run in its own process.
     # Limit the maximum number of concurrent processes to $jobs:
     export -f nix_fast_build; export OPTS TMPDIR;
-    parallel -j"$jobs" -i bash -c "nix_fast_build {}" -- "${TARGETS[@]}"
+    parallel --will-cite -j"$jobs" --halt 2 -k --lb nix_fast_build ::: "${TARGETS[@]}"
 }
 
 main "$@"
