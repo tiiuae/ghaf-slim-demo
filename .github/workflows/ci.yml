@@ -92,7 +92,7 @@ jobs:
       - name: Build on the remote builder
         run: |
           if [ "${{ matrix.arch }}" == "x86_64-linux" ]; then
-            OPTS="--remote '${{ vars.BUILDER_X86 }}'"
+            OPTS="--remote '${{ vars.BUILDER_X86 }}' --cachix-cache ghaf-dev"
             FILTER='^checks\.x86_64-linux\..*debug$'
           elif [ "${{ matrix.arch }}" == "aarch64-linux" ]; then
             OPTS="--remote '${{ vars.BUILDER_AARCH64 }}'"
