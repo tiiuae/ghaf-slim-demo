@@ -176,7 +176,6 @@ nix_fast_build () {
     # shellcheck disable=SC2086 # intented word splitting of $OPTS
     nix-fast-build \
       --flake "$target" \
-      --always-upload-source \
       --eval-workers 4 \
       --option accept-flake-config true \
       --remote-ssh-option ControlMaster no \
