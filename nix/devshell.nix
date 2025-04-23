@@ -25,6 +25,7 @@
               [
                 pkgs.jq
                 pkgs.mdbook
+                pkgs.moreutils
                 pkgs.nix-eval-jobs
                 pkgs.nix-fast-build
                 pkgs.nix-output-monitor
