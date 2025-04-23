@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022-2023 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2025 TII (SSRC) and the Ghaf contributors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -7,19 +7,9 @@ on:
   push:
     branches:
       - main
-
-  # Important: 'pull_request_target' trigger runs the workflow in the context
-  # of the base of the pull request. This means, the version of the running
-  # workflow file in github actions will be taken from the base branch (e.g.
-  # main), not the PR. Therefore, any changes to this workflow file or any
-  # of its dependencies will only take impact after merge. Changes to this
-  # file need to be manually tested (perhaps in a forked repo) before
-  # merge to make sure the change does not break anything. Check results
-  # for such changes, as reported in the PR github actions are misleading.
   pull_request_target:
     branches:
       - main
-
 permissions:
   contents: read
 jobs:
@@ -45,6 +35,7 @@ jobs:
       github-org: tiiuae
     secrets:
       read-org-members: ${{ secrets.READ_ORG_MEMBERS }}
+
   build_matrix:
     name: "build"
     needs: [authorize]
