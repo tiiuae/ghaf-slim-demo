@@ -6,6 +6,7 @@ name: authorize
 
 permissions: {}
 
+
 on:
   workflow_call:
     secrets:
