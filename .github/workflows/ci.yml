@@ -79,10 +79,10 @@ jobs:
       - name: Build on the remote builder
         run: |
           if [ "${{ matrix.arch }}" == "x86_64-linux" ]; then
-            OPTS="--remote '${{ vars.BUILDER_X86 }}'"
+            OPTS="--remote ${{ vars.BUILDER_X86 }} --no-download --skip-cached --option accept-flake-config true"
             FILTER='^checks\.x86_64-linux\..*debug$'
           else
             echo "::error::Unknown architecture: '${{ matrix.arch }}'"
             exit 1
           fi
-          nix develop --command bash -c ".github/nix-fast-build.sh -f '$FILTER' -o '$OPTS'"
+          .github/nix-fast-build.sh -f "$FILTER" -o "$OPTS"
