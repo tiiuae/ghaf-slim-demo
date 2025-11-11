@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   lib,
@@ -12,8 +12,6 @@ let
   inherit (cfg) xdgHostRoot;
   inherit (config.ghaf.networking) hosts;
   inherit (lib)
-    hasAttr
-    listToAttrs
     optionalString
     mkEnableOption
     mkOption
@@ -66,7 +64,7 @@ let
   #   }
   setDefaultAppForTypes =
     mimeTypes: defaultApplication:
-    listToAttrs (
+    lib.listToAttrs (
       map (mimeType: {
         name = mimeType;
         value = defaultApplication;
@@ -132,9 +130,11 @@ let
     text =
       let
         urlVmName =
-          if hasAttr "chrome-vm" hosts then
+          if config.ghaf.xdghandlers.url then
+            "${config.networking.hostName}"
+          else if lib.hasAttr "chrome-vm" hosts then
             "chrome-vm"
-          else if hasAttr "chromium-vm" hosts then
+          else if lib.hasAttr "chromium-vm" hosts then
             "chromium-vm"
           else
             "";
@@ -142,8 +142,9 @@ let
         openExternalUrl = optionalString (urlVmName != "") ''
           open_url() {
             echo "Opening URL in ${urlVmName}: $resource"
+
             ${pkgs.givc-cli}/bin/givc-cli ${config.ghaf.givc.cliArgs} \
-              start app --vm ${urlVmName} "xdg-url" -- "$resource"
+              start app --vm "${urlVmName}" "xdg-url" -- "$resource"
           }
 
           if [[ "$resourceType" == "url" ]]; then

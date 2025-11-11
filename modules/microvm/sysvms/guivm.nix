@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { inputs }:
 {
@@ -8,14 +8,16 @@
   ...
 }:
 let
-
+  configHost = config;
   vmName = "gui-vm";
+
   #TODO do not import from a path like this
   inherit (import ../../../lib/launcher.nix { inherit pkgs lib; }) rmDesktopEntries;
   guivmBaseConfiguration = {
     imports = [
       inputs.self.nixosModules.profiles
       inputs.self.nixosModules.givc
+      inputs.self.nixosModules.hardware-x86_64-guest-kernel
       inputs.preservation.nixosModules.preservation
       inputs.self.nixosModules.vm-modules
 
@@ -34,7 +36,7 @@ let
             inherit (app) description;
             #inherit (app) givcName;
             vm = app.vmName;
-            path = "${pkgs.givc-cli}/bin/givc-cli ${config.ghaf.givc.cliArgs} start app --vm ${vm} ${app.givcName}";
+            execPath = "${pkgs.givc-cli}/bin/givc-cli ${config.ghaf.givc.cliArgs} start app --vm ${vm} ${app.givcName}";
             inherit (app) icon;
           }) virtualApps;
 
@@ -42,7 +44,7 @@ let
           guivmLaunchers = map (app: {
             inherit (app) name;
             inherit (app) description;
-            path = app.command;
+            execPath = app.command;
             inherit (app) icon;
           }) cfg.applications;
         in
@@ -94,12 +96,18 @@ let
                 enable = true;
                 isGuiVm = true;
               };
+              encryption.enable = configHost.ghaf.virtualization.storagevm-encryption.enable;
             };
 
             # Networking
             virtualization.microvm.vm-networking = {
               enable = true;
               inherit vmName;
+            };
+
+            virtualization.microvm.tpm.passthrough = {
+              inherit (configHost.ghaf.virtualization.storagevm-encryption) enable;
+              rootNVIndex = "0x81703000";
             };
 
             # Create launchers for regular apps running in the GUIVM and virtualized ones if GIVC is enabled
@@ -207,12 +215,27 @@ let
                 pkgs.wlr-randr
               ]
               ++ [ pkgs.ctrl-panel ]
+              # For GIVC debugging/testing
+              ++ lib.optional config.ghaf.profiles.debug.enable pkgs.givc-cli
               # Packages for checking hardware acceleration
               ++ lib.optionals config.ghaf.profiles.debug.enable [
-                pkgs.glxinfo
+                pkgs.mesa-demos
                 pkgs.libva-utils
                 pkgs.glib
-              ];
+              ]
+              ++ [ pkgs.vhotplug ];
+            sessionVariables = lib.optionalAttrs config.ghaf.profiles.debug.enable (
+              {
+                GIVC_NAME = "admin-vm";
+                GIVC_ADDR = config.ghaf.networking.hosts."admin-vm".ipv4;
+                GIVC_PORT = "9001";
+              }
+              // lib.optionalAttrs config.ghaf.givc.enableTls {
+                GIVC_CA_CERT = "/run/givc/ca-cert.pem";
+                GIVC_HOST_CERT = "/run/givc/cert.pem";
+                GIVC_HOST_KEY = "/run/givc/key.pem";
+              }
+            );
           };
 
           time.timeZone = config.time.timeZone;
@@ -271,14 +294,8 @@ let
       )
     ];
   };
+
   cfg = config.ghaf.virtualization.microvm.guivm;
-
-  #TODO: fix the kernel includes and builders to be more modular and centrailized
-  # Importing kernel builder function and building guest_graphics_hardened_kernel
-  buildKernel = import ../../../packages/kernel { inherit config pkgs lib; };
-  config_baseline = ../../hardware/x86_64-generic/kernel/configs/ghaf_host_hardened_baseline-x86;
-  guest_graphics_hardened_kernel = buildKernel { inherit config_baseline; };
-
 in
 {
   options.ghaf.virtualization.microvm.guivm = {
@@ -336,12 +353,6 @@ in
       specialArgs = { inherit lib; };
 
       config = guivmBaseConfiguration // {
-        boot.kernelPackages =
-          if config.ghaf.guest.kernel.hardening.graphics.enable then
-            pkgs.linuxPackagesFor guest_graphics_hardened_kernel
-          else
-            pkgs.linuxPackages_latest;
-
         imports = guivmBaseConfiguration.imports ++ cfg.extraModules;
       };
     };

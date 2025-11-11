@@ -1,12 +1,12 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { pkgs, config, ... }:
 let
   toDesktop =
-    elem:
+    launcherElem:
     let
-      prefix = if elem.vm != null then "[${elem.vm}] " else "";
-      icon = if elem.icon != null then elem.icon else elem.name;
+      prefix = if launcherElem.vm != null then "[${launcherElem.vm}] " else "";
+      icon = if launcherElem.icon != null then launcherElem.icon else launcherElem.name;
 
       extraCheckPhase =
         if builtins.isPath icon then
@@ -18,12 +18,12 @@ let
           "";
     in
     (pkgs.makeDesktopItem {
-      inherit (elem) name;
-      genericName = elem.name;
-      desktopName = elem.name;
+      inherit (launcherElem) name;
+      genericName = launcherElem.name;
+      desktopName = launcherElem.name;
       inherit icon;
-      comment = "${prefix}${elem.description}";
-      exec = elem.path;
+      comment = "${prefix}${launcherElem.description}";
+      exec = launcherElem.execPath;
     }).overrideAttrs
       (prevAttrs: {
         checkPhase = prevAttrs.checkPhase + extraCheckPhase;

@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -70,6 +70,8 @@ in
   ## === Common :: Other ===
   "-a always,exit -F arch=b64 -F path=/etc/machine-id -F perm=wa -F key=identity"
   "-w /etc/ssh -p rwxa -k ssh_config_access"
+  # User root execve
+  "-a always,exit -F arch=b64 -S execve -F euid=0 -F auid>=1000 -F auid!=unset -k privileged-execve"
 
   # 32-power-abuse.rules
   ## The purpose of this rule is to detect when an admin may be abusing power

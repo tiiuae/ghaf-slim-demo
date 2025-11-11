@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { lib, config, ... }:
 let
@@ -10,9 +10,6 @@ in
     enable = mkEnableOption "Nvidia Podman Daemon";
   };
   config = mkIf cfg.enable {
-    # Just ensure containers are enabled by boot.
-    boot.enableContainers = lib.mkForce true;
-
     # Enable Opengl renamed to hardware.graphics.enable
     hardware.graphics.enable = lib.mkForce true;
 

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { final, prev }:
 let
@@ -12,9 +12,10 @@ prev.qemu_kvm.overrideAttrs (
       ++ [
         # own patches
         ./0001-ivshmem-flat-memory-support.patch
+        ./0002-Increase-timeout-in-tpm_util_request.patch
         ./usb-host-enable-autoscan-for-bus-addr.patch
       ]
-      ++ final.lib.optionals final.hostPlatform.isx86_64 [
+      ++ final.lib.optionals final.stdenv.hostPlatform.isx86_64 [
         # https://github.com/blochl/qemu/pull/3
         # TODO: remove when merged upstream
         ./0001-hw-acpi-Support-extended-GPE-handling-for-additional.patch

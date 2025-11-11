@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { config, lib, ... }:
 let
@@ -40,6 +40,8 @@ in
         };
       };
 
+      virtualization.storagevm-encryption.enable = true;
+
       graphics = {
         labwc = {
           autologinUser = lib.mkForce null;
@@ -48,6 +50,26 @@ in
 
       # Enable audit
       security.audit.enable = lib.mkForce true;
+
+      # host = {
+      #   kernel.hardening = {
+      #     enable = false;
+      #     virtualization.enable = false;
+      #     networking.enable = false;
+      #     usb.enable = false;
+      #     inputdevices.enable = false;
+      #     debug.enable = false;
+      #     # host kernel hypervisor (KVM) hardening
+      #     hypervisor.enable = false;
+      #   };
+      # };
+      # # guest kernel hardening
+      # guest = {
+      #   kernel.hardening = {
+      #     enable = false;
+      #     graphics.enable = false;
+      #   };
+      # };
     };
   };
 }

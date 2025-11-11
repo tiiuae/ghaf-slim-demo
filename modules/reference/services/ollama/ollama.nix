@@ -1,4 +1,4 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -35,6 +35,7 @@ in
     };
 
     ghaf = optionalAttrs (builtins.hasAttr "storagevm" config.ghaf) {
+      storagevm.maximumSize = 100 * 1024; # 100 GB space for ollama (models can be large)
       storagevm.directories = [
         {
           directory = "/var/lib/private/ollama";

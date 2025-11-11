@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # Laptop image to run hardware scan and generate config files
@@ -14,7 +14,9 @@ let
   hw-scan =
     let
       hostConfiguration = lib.nixosSystem {
-        inherit system;
+        specialArgs = {
+          inherit (inputs.self) lib;
+        };
         modules = [
           (
             { config, modulesPath, ... }:
@@ -31,7 +33,7 @@ let
               systemd.services.sshd.wantedBy = lib.mkForce [ "multi-user.target" ];
               image.baseName = lib.mkForce "ghaf";
               isoImage.squashfsCompression = "zstd -Xcompression-level 3";
-              environment.systemPackages = [ self.packages.x86_64-linux.hardware-scan ];
+              environment.systemPackages = [ self.packages.${system}.hardware-scan ];
               networking.networkmanager.enable = true;
               networking.wireless.enable = false;
               boot.kernelParams = [
@@ -41,7 +43,7 @@ let
               ];
 
               nixpkgs = {
-                hostPlatform.system = "x86_64-linux";
+                hostPlatform.system = system;
 
                 # Increase the support for different devices by allowing the use
                 # of proprietary drivers from the respective vendors

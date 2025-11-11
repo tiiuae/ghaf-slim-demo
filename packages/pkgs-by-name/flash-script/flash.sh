@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 
 # Function to print usage and exit
@@ -39,7 +39,7 @@ if [ ! -b "$DEVICE" ]; then
     exit 1
 fi
 
-# Input validation for filename parameter  
+# Input validation for filename parameter
 if [[ "$FILENAME" =~ \.\./ || "$FILENAME" =~ /\.\. || "$FILENAME" == ".." ]]; then
     echo "Invalid filename contains path traversal: ${FILENAME}"
     exit 1

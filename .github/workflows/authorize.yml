@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -29,7 +29,7 @@ jobs:
     environment: "internal"
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
@@ -72,12 +72,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
       - name: Set output
         id: set-output
         run: |
+          # Valid github environment(s) should set the ENV_DEFINED variable
+          # to prevent accidentally running actions in an unset environment:
+          if [ -z "$ENV_DEFINED" ]; then
+            echo "Running in unexpected environment"
+            echo "result=failed" >>"$GITHUB_OUTPUT"
+            exit 1
+          fi
           echo "Auth OK"
           echo "result=authorized" >>"$GITHUB_OUTPUT"
+        env:
+          ENV_DEFINED: ${{ vars.ENV_DEFINED }}

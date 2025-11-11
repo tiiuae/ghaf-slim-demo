@@ -1,4 +1,4 @@
-# Copyright 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # VM memory usage manager on host
@@ -34,8 +34,8 @@ in
                 Type = "simple";
                 WorkingDirectory = "${config.microvm.stateDir}/${name}";
                 ExecStart = "${pkgs.ghaf-mem-manager}/bin/ghaf-mem-manager -s ${name}.sock -m ${
-                  builtins.toString (appvmConfig.ramMb * 1024 * 1024)
-                } -M ${builtins.toString (microvmConfig.mem * 1024 * 1024)}";
+                  toString (appvmConfig.ramMb * 1024 * 1024)
+                } -M ${toString (microvmConfig.mem * 1024 * 1024)}";
               };
             };
           }
@@ -44,7 +44,7 @@ in
       {
         balloon-manager =
           let
-            balloonvmnames = builtins.map (name: "ghaf-mem-manager-" + name + ".service") balloonvms;
+            balloonvmnames = map (name: "ghaf-mem-manager-" + name + ".service") balloonvms;
           in
           {
             description = "Manage MicroVM balloons";

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   inputs,
@@ -13,7 +13,9 @@ let
     format: variant: withGraphics:
     let
       hostConfiguration = lib.nixosSystem {
-        inherit system;
+        specialArgs = {
+          inherit (self) lib;
+        };
         modules = [
           (builtins.getAttr format nixos-generators.nixosModules)
           self.nixosModules.microvm
@@ -26,6 +28,7 @@ let
             {
               ghaf = {
                 hardware.x86_64.common.enable = true;
+                hardware.tpm2.enable = true;
                 microvm-boot.enable = lib.mkForce false;
 
                 virtualization = {
@@ -69,13 +72,13 @@ let
                     name = "Calculator";
                     description = "Solve Math Problems";
                     icon = "${pkgs.gnome-calculator}/share/icons/hicolor/scalable/apps/org.gnome.Calculator.svg";
-                    path = "${pkgs.gnome-calculator}/bin/gnome-calculator";
+                    execPath = "${pkgs.gnome-calculator}/bin/gnome-calculator";
                   }
                   {
                     name = "Bluetooth Settings";
                     description = "Manage Bluetooth Devices & Settings";
                     icon = "bluetooth-48";
-                    path = "${pkgs.writeShellScriptBin "bluetooth-settings" ''
+                    execPath = "${pkgs.writeShellScriptBin "bluetooth-settings" ''
                       DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbusproxy_snd.sock \
                       PULSE_SERVER=audio-vm:${toString config.ghaf.services.audio.pulseaudioTcpControlPort} \
                       ${pkgs.blueman}/bin/blueman-manager
@@ -164,7 +167,7 @@ let
               };
 
               nixpkgs = {
-                hostPlatform.system = "x86_64-linux";
+                hostPlatform.system = system;
 
                 # Increase the support for different devices by allowing the use
                 # of proprietary drivers from the respective vendors
@@ -194,6 +197,7 @@ let
                     guest.port = 22;
                   }
                 ];
+                tpm.enable = true;
               };
             }
           )

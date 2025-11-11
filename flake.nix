@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   description = "Ghaf Framework: Documentation and implementation for TII SSRC Secure Technologies";
@@ -22,8 +22,8 @@
 
   inputs = {
     #TODO: carrying the extra patch(es) until merged to unstable
-    #nixpkgs.url = "github:tiiuae/nixpkgs/qemu-10-1-bump";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:tiiuae/nixpkgs/first-november-bump";
+    #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # A framework for testing ghaf configurations
     ci-test-automation = {
@@ -87,7 +87,7 @@
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
         treefmt-nix.follows = "treefmt-nix";
-        pre-commit-hooks-nix.follows = "git-hooks-nix";
+        git-hooks-nix.follows = "git-hooks-nix";
         flake-compat.follows = "flake-compat";
         crane.follows = "givc/crane";
         devshell.follows = "devshell";
@@ -119,7 +119,7 @@
     # Nvidia Orin support for NixOS
     jetpack-nixos = {
       #url = "github:anduril/jetpack-nixos";
-      url = "github:tiiuae/jetpack-nixos/another-fix-kernel";
+      url = "github:tiiuae/jetpack-nixos/another-fix-kernel-rebased";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -132,6 +132,16 @@
       };
     };
 
+    # lsp and cmdline tools for the cli
+    nixd = {
+      url = "github:nix-community/nixd";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        flake-root.follows = "flake-root";
+        treefmt-nix.follows = "treefmt-nix";
+      };
+    };
+
     # Building various image types for NixOS
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
@@ -140,7 +150,7 @@
 
     # Hardware specific modules and configurations for NixOS
     nixos-hardware = {
-      url = "github:NixOS/nixos-hardware";
+      url = "github:NixOS/nixos-hardware/ae91411396f37d84850e07e7310f251b83fd3a93";
     };
 
     # Packages managment similar to nixpkgs, applied to flake parts
@@ -180,12 +190,17 @@
   outputs =
     inputs@{ flake-parts, ... }:
     let
-      lib = import ./lib.nix { inherit inputs; };
+      # Create the extended lib
+      ghafLib = import ./lib.nix { inherit inputs; };
+      extendedLib = inputs.nixpkgs.lib.extend ghafLib;
     in
     flake-parts.lib.mkFlake
       {
         inherit inputs;
-        specialArgs = { inherit lib; };
+        # Pass the extended lib via specialArgs for immediate access
+        specialArgs = {
+          lib = extendedLib;
+        };
       }
       {
         # Toggle this to allow debugging in the repl
@@ -199,15 +214,17 @@
 
         imports = [
           ./overlays/flake-module.nix
+          ./lib/builders/flake-module.nix
           ./modules/flake-module.nix
           ./nix/flake-module.nix
           ./packages/flake-module.nix
           ./targets/flake-module.nix
-          ./hydrajobs/flake-module.nix
+          #./hydrajobs/flake-module.nix
           ./templates/flake-module.nix
           ./tests/flake-module.nix
         ];
 
-        flake.lib = lib;
+        # Export the extended lib for explicit use
+        flake.lib = extendedLib;
       };
 }

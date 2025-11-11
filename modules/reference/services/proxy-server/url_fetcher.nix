@@ -1,8 +1,7 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   writeShellApplication,
-  lib,
   pkgs,
   ...
 }:
@@ -134,10 +133,10 @@ writeShellApplication {
         exit 2
     fi
   '';
-  meta = with lib; {
+  meta = {
     description = "
           The application is a shell script designed to fetch a list of URLs
-      from a specified endpoint and save them to an allow list file. The script includes error 
+      from a specified endpoint and save them to an allow list file. The script includes error
       handling and retry logic to ensure robustness in various network conditions.
     ";
   };

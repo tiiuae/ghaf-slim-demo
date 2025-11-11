@@ -1,4 +1,4 @@
-# Copyright 2024-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -48,7 +48,7 @@ in
       enable = true;
       extraPackages = [ pkgs.ipset ];
       bantime = "30m";
-      maxretry = 3;
+      maxretry = if (config.ghaf.profiles.debug.enable or false) then 10 else 3;
       bantime-increment.enable = true;
       bantime-increment.factor = "2";
       jails = {

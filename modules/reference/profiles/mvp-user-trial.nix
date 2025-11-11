@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { config, lib, ... }:
 let
@@ -35,28 +35,30 @@ in
         };
       };
 
-      hardware.passthrough.VMs = {
-        gui-vm.permittedDevices = [
-          "crazyradio0"
-          "crazyradio1"
-          "crazyfile0"
-          "fpr0"
-          "usbKBD"
-          "xbox0"
-          "xbox1"
-          "xbox2"
-          "yubikey0"
-        ];
-        comms-vm.permittedDevices = [ "gps0" ];
-        audio-vm.permittedDevices = [ "bt0" ];
-        business-vm.permittedDevices = [ "cam0" ];
+      hardware.passthrough = {
+        mode = "dynamic";
+        VMs = {
+          gui-vm.permittedDevices = [
+            "crazyradio0"
+            "crazyradio1"
+            "crazyfile0"
+            "fpr0"
+            "usbKBD"
+            "xbox0"
+            "xbox1"
+            "xbox2"
+          ];
+          comms-vm.permittedDevices = [ "gps0" ];
+          audio-vm.permittedDevices = [ "bt0" ];
+          business-vm.permittedDevices = [ "cam0" ];
+        };
       };
 
       reference = {
         appvms.enable = true;
         services = {
           enable = true;
-          dendrite = true;
+          dendrite = false;
           proxy-business = lib.mkForce config.ghaf.virtualization.microvm.appvm.vms.business.enable;
           google-chromecast = {
             enable = true;
@@ -99,7 +101,7 @@ in
       };
 
       # Disk encryption
-      storage.encryption.enable = true;
+      storage.encryption.enable = false;
 
       # Enable audit
       security.audit.enable = false;

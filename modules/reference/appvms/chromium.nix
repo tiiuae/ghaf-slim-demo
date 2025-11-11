@@ -1,4 +1,4 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
@@ -14,7 +14,11 @@
     cores = 4;
     borderColor = "#B83232";
     ghafAudio.enable = true;
-    vtpm.enable = true;
+    vtpm = {
+      enable = true;
+      runInVM = config.ghaf.virtualization.storagevm-encryption.enable;
+      basePort = 9120;
+    };
     applications = [
       {
         # The SPKI fingerprint is calculated like this:
@@ -37,9 +41,10 @@
               reference.programs.chromium.enable = true;
               xdgitems = {
                 enable = true;
-                elementDesktop = true;
               };
               xdghandlers.url = true;
+
+              storagevm.maximumSize = 100 * 1024; # 100 GB space for chrome-vm
 
               firewall = {
                 allowedUDPPorts = config.ghaf.reference.services.chromecast.udpPorts;

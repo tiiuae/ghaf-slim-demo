@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
@@ -10,14 +10,11 @@
 let
   cfg = config.ghaf.services.power-manager;
   inherit (lib)
-    attrNames
-    concatStringsSep
     concatMapStringsSep
     filterAttrs
     flatten
     getExe
     literalExpression
-    listToAttrs
     mkDefault
     mkEnableOption
     mkIf
@@ -29,6 +26,7 @@ let
     optionalString
     replaceString
     types
+    getExe'
     ;
 
   useGivc = config.ghaf.givc.enable;
@@ -44,7 +42,7 @@ let
   );
 
   # List of VMs that are running a fake suspend
-  fakeSuspendVms = attrNames (
+  fakeSuspendVms = lib.attrNames (
     filterAttrs (
       _n: v:
       (
@@ -55,7 +53,7 @@ let
   );
 
   # List of VMs that are running a PCI suspend
-  pciSuspendVms = attrNames (
+  pciSuspendVms = lib.attrNames (
     filterAttrs (
       _n: v:
       (
@@ -66,7 +64,7 @@ let
   );
 
   # List of VMs that are powered off on suspend
-  powerOffVms = attrNames (
+  powerOffVms = lib.attrNames (
     filterAttrs (
       _n: v:
       (
@@ -218,7 +216,7 @@ let
           # Script to unbind PCI devices for suspend
           # For convenience, we pass IDs of all passthrough PCI devices,
           # each guest will automatically determine the correct PCI devices
-          pci-binder unbind ${concatStringsSep " " pciDevices}
+          pci-binder unbind ${lib.concatStringsSep " " pciDevices}
           ;;
         *)
           echo "Usage: $0 (suspend|reboot|poweroff)"
@@ -368,6 +366,14 @@ in
         Additionally, if a system VM has `ghaf.gracefulShutdown = true`, enabling this host profile
         allows the host to override the VM's default microvm ExecStop logic, starting
         the guest's `poweroff.target` and waiting for the VM process to exit.
+      '';
+    };
+    usbSuspend = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Whether to enable USB device suspend and resume.
+        When enabled, all USB devices are detached from VMs on suspend and re-attached on resume.
       '';
     };
   };
@@ -550,7 +556,7 @@ in
       systemd.services = mkMerge [
         # suspend/resume action units
         (optionalAttrs cfg.allowSuspend (
-          listToAttrs (
+          lib.listToAttrs (
             flatten (
               map
                 (suspendAction: [
@@ -582,6 +588,29 @@ in
                 ]
             )
           )
+          // optionalAttrs cfg.usbSuspend {
+            pre-sleep-usb = {
+              description = "USB suspend actions before sleep";
+              partOf = [ "pre-sleep-actions.target" ];
+              wantedBy = [ "pre-sleep-actions.target" ];
+              before = [ "sleep.target" ];
+              serviceConfig = {
+                Type = "oneshot";
+                ExecStart = "${getExe' pkgs.vhotplug "vhotplugcli"} usb suspend";
+              };
+            };
+
+            post-resume-usb = {
+              description = "USB resume actions after wakeup";
+              partOf = [ "post-resume-actions.target" ];
+              wantedBy = [ "post-resume-actions.target" ];
+              after = [ "suspend.target" ];
+              serviceConfig = {
+                Type = "oneshot";
+                ExecStart = "${getExe' pkgs.vhotplug "vhotplugcli"} usb resume";
+              };
+            };
+          }
         ))
         # Override microvm’s default shutdown behavior
         #
@@ -600,7 +629,7 @@ in
         # We also shorten TimeoutStopSec from the microvm default (150s) to 30s,
         # since system VMs are expected to power off quickly.
         (mkIf useGivc (
-          listToAttrs (
+          lib.listToAttrs (
             map
               (
                 vmName:
@@ -631,7 +660,7 @@ in
                 }
               )
               (
-                attrNames (
+                lib.attrNames (
                   filterAttrs (
                     _: vm: vm.config.config.ghaf.type == "system-vm" && vm.config.config.ghaf.gracefulShutdown
                   ) config.microvm.vms

@@ -1,5 +1,5 @@
 <!--
-    Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+    SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
     SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
@@ -51,7 +51,7 @@ Completing this checklist shows that you value and respect their time and effort
 ### Installation Method
 - [ ] Requires full re-installation
 - [ ] Can be updated with `nixos-rebuild ... switch`
-- [ ] Other: 
+- [ ] Other:
 
 ### Test Steps To Verify:
 <!--

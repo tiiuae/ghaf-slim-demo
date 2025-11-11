@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { inputs, ... }:
 {
@@ -7,28 +7,22 @@
     {
       config,
       pkgs,
-      self',
-      lib,
       ...
     }:
     {
-      checks = {
-        reuse = pkgs.runCommandLocal "reuse-lint" { buildInputs = [ pkgs.reuse ]; } ''
-          cd ${../.}
-          reuse lint
-          touch $out
-        '';
-        #module-test-hardened-generic-host-kernel =
-        #  pkgs.callPackage ../modules/hardware/x86_64-generic/kernel/host/test
-        #    { inherit pkgs; };
-        #module-test-hardened-lenovo-x1-guest-guivm-kernel =
-        #  pkgs.callPackage ../modules/hardware/lenovo-x1/kernel/guest/test
-        #    { inherit pkgs; };
-        #module-test-hardened-pkvm-kernel =
-        #  pkgs.callPackage ../modules/hardware/x86_64-generic/kernel/host/pkvm/test
-        #    { inherit pkgs; };
-      }
-      // (lib.mapAttrs' (n: lib.nameValuePair "package-${n}") self'.packages);
+      # Checks are automatically provided by git-hooks-nix.flakeModule:
+      # - checks.${system}.pre-commit: runs all pre-commit hooks (treefmt, reuse, etc.)
+      #
+      # Developer workflow:
+      # - nix/devshell.nix uses config.pre-commit.installationScript to install
+      #   git hooks into .git/hooks/ when entering the dev environment
+      # - The hooks run automatically on `git commit` for staged files only
+      #
+      # CI workflow:
+      # - checks.${system}.pre-commit runs all hooks on all tracked files
+      # - Used by .github/workflows/check.yml to enforce code standards
+
+      checks = { };
 
       pre-commit = {
         settings = {
@@ -36,16 +30,34 @@
             treefmt = {
               enable = true;
               package = config.treefmt.build.wrapper;
-              stages = [ "pre-push" ];
+              # Run on pre-commit to only check staged files
+              stages = [ "pre-commit" ];
             };
             reuse = {
               enable = true;
               package = pkgs.reuse;
-              stages = [ "pre-push" ];
+              # Run on pre-commit to only check staged files
+              stages = [ "pre-commit" ];
             };
             end-of-file-fixer = {
               enable = true;
-              stages = [ "pre-push" ];
+              # Run on pre-commit to only check staged files
+              stages = [ "pre-commit" ];
+              # Exclude files that should not be modified
+              excludes = [
+                ".*\\.patch$"
+                ".*\\.dts$"
+              ];
+            };
+            trim-trailing-whitespace = {
+              enable = true;
+              # Run on pre-commit to only check staged files
+              stages = [ "pre-commit" ];
+              # Excludes files that should not be modified
+              excludes = [
+                ".*\\.patch$"
+                ".*\\.dts$"
+              ];
             };
           };
         };

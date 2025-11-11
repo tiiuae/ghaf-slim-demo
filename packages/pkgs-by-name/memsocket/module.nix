@@ -1,8 +1,7 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   stdenv,
-  lib,
   kernel,
   fetchFromGitHub,
   vmCount,
@@ -29,10 +28,10 @@ stdenv.mkDerivation {
   makeFlags = [
     "KDIR=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
     "MODULEDIR=$(out)/lib/modules/${kernel.modDirVersion}/kernel/drivers/char"
-    "CFLAGS_kvm_ivshmem.o=\"-DCONFIG_KVM_IVSHMEM_VM_COUNT=${builtins.toString vmCount}\""
+    "CFLAGS_kvm_ivshmem.o=\"-DCONFIG_KVM_IVSHMEM_VM_COUNT=${toString vmCount}\""
   ];
 
-  meta = with lib; {
+  meta = {
     description = "Shared memory Linux kernel module";
     platforms = [
       "x86_64-linux"

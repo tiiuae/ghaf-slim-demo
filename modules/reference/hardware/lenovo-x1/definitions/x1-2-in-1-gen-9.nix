@@ -1,4 +1,4 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   # System name
@@ -71,10 +71,6 @@
 
   # Audio device for passthrough to audiovm
   audio = {
-    # Force a PCI device reset to the audio device
-    # This is to get the pci hardware device to the default state at shutdown
-    removePciDevice = "0000:00:1f.3";
-
     pciDevices = [
       {
         # ISA bridge: Intel Corporation Device 7e03 (rev 20)

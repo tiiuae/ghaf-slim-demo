@@ -1,4 +1,4 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
@@ -14,7 +14,11 @@
     cores = 4;
     borderColor = "#630505";
     ghafAudio.enable = true;
-    vtpm.enable = true;
+    vtpm = {
+      enable = true;
+      runInVM = config.ghaf.virtualization.storagevm-encryption.enable;
+      basePort = 9150;
+    };
     applications =
       let
         chromeWrapper = pkgs.writeShellApplication {
@@ -72,13 +76,13 @@
                 security.apparmor.enable = true;
                 xdgitems = {
                   enable = true;
-                  elementDesktop = true;
                 };
                 xdghandlers.url = true;
                 firewall = {
                   allowedUDPPorts = config.ghaf.reference.services.chromecast.udpPorts;
                   allowedTCPPorts = config.ghaf.reference.services.chromecast.tcpPorts;
                 };
+                storagevm.maximumSize = 100 * 1024; # 100 GB space for google-chrome-vm
               };
 
             }

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -6,8 +6,8 @@
   ...
 }:
 let
-  inherit (lib) mkDefault hasAttr;
-  hasStorageVm = (hasAttr "storagevm" config.ghaf) && config.ghaf.storagevm.enable;
+  inherit (lib) mkDefault;
+  hasStorageVm = (lib.hasAttr "storagevm" config.ghaf) && config.ghaf.storagevm.enable;
 in
 {
   # Common ghaf user settings

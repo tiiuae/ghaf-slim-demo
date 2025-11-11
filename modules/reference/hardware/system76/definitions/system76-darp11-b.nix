@@ -1,4 +1,4 @@
-# Copyright 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   # System name
@@ -38,7 +38,7 @@
       {
         # Network controller: Intel Corporation Wi-Fi 7(802.11be) AX1775*/AX1790*/BE20*/BE401/BE1750* 2x2 (rev 1a)
         name = "wlp0s5f0";
-        path = "0000:2e:00.0";
+        path = ""; # PCI ID will be retrieved dynamically see https://github.com/tiiuae/ghaf/pull/1220/files
         vendorId = "8086";
         productId = "272b";
         # Detected kernel driver: iwlwifi
@@ -72,9 +72,6 @@
 
   # Audio device for passthrough to audiovm
   audio = {
-    # Force a PCI device reset to the audio device
-    # This is to get the pci hardware device to the default state at shutdown
-    removePciDevice = "0000:00:1f.3";
     acpiPath = null;
 
     pciDevices = [

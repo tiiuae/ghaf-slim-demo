@@ -1,4 +1,4 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -133,8 +133,8 @@ in
 
     # Apply the allowListConfig generated from the list
     systemd = {
-      tmpfiles.rules = builtins.map (
-        path: "f /etc/${path} 0660 ${proxyUserName} ${proxyGroupName} - -"
+      tmpfiles.rules = map (
+        tmpPath: "f /etc/${tmpPath} 0660 ${proxyUserName} ${proxyGroupName} - -"
       ) allowListPaths;
 
       # systemd service for fetching the file

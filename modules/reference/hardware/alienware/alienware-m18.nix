@@ -1,4 +1,4 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   # System name
@@ -90,8 +90,6 @@
 
   # Audio device for passthrough to audiovm
   audio = {
-    removePciDevice = "0000:00:1f.3";
-
     pciDevices = [
       {
         # ISA bridge: Intel Corporation Device 7a0c (rev 11)

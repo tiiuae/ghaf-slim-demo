@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 
 version = 1
@@ -8,7 +8,7 @@ SPDX-PackageDownloadLocation = "https://github.com/tiiuae/ghaf"
 
 [[annotations]]
 SPDX-License-Identifier = "Apache-2.0"
-SPDX-FileCopyrightText = "2022-2024 TII (SSRC) and the Ghaf contributors"
+SPDX-FileCopyrightText = "2022-2026 TII (SSRC) and the Ghaf contributors"
 precedence = "closest"
 path = [
   ".github/dependabot.yml",
@@ -20,11 +20,17 @@ path = [
   ".version",
   "assets/**/*.png",
   "assets/**/*.svg",
+  "lib/builders/README.md",
   "modules/development/audio_test/test_file1.mp3",
-  "modules/hardware/x86_64-generic/kernel/configs/ghaf_host_hardened_baseline-x86",
+  "modules/hardware/x86_64-generic/kernel/host/configs/ghaf_host_hardened_baseline-x86",
+  "modules/hardware/x86_64-generic/kernel/guest/configs/ghaf_guest_hardened_baseline-x86",
   "modules/reference/hardware/jetpack/ghaf_host_hardened_baseline-jetson-orin",
   "modules/microvm/sysvms/idsvm/mitmproxy/mitmproxy-ca/*",
-  "modules/reference/hardware/jetpack/0001-ARM-SMMU-drivers-return-always-true-for-IOMMU_CAP_CA.patch"
+  "modules/reference/hardware/jetpack/0001-ARM-SMMU-drivers-return-always-true-for-IOMMU_CAP_CA.patch",
+  "overlays/custom-packages/cosmic/cosmic-comp/0001-Add-security-context-indicator.patch",
+  "overlays/custom-packages/cosmic/cosmic-comp/0001-Disable-VRR-by-default.patch",
+  "overlays/custom-packages/cosmic/cosmic-initial-setup/0001-Preselect-Ghaf-themes.patch",
+  "overlays/custom-packages/cosmic/cosmic-greeter/0001-Replace-fallback-background-with-Ghaf-default.patch"
 ]
 
 [[annotations]]
@@ -109,7 +115,7 @@ path = [
   "modules/reference/hardware/jetpack/nvidia-jetson-orin/virtualization/host/bpmp-virt-host/patches/*.patch",
   "modules/reference/hardware/jetpack/*.patch",
   "modules/reference/hardware/jetpack/nvidia-jetson-orin/virtualization/passthrough/uarti-net-vm/patches/net_vm_dtb_with_uarti.patch",
-  "modules/hardware/x86_64-generic/kernel/host/pkvm/0001-pkvm-enable-pkvm-on-intel-x86-6.1-lts.patch",
+  "modules/hardware/x86_64-generic/kernel/pkvm/0001-pkvm-enable-pkvm-on-intel-x86-6.1-lts.patch",
   "modules/microvm/sysvms/0001-x86-gpu-Don-t-reserve-stolen-memory-for-GPU-passthro.patch",
   "modules/reference/hardware/jetpack/nvidia-jetson-orin/virtualization/passthrough/uarti-net-vm/tegra234-netvm.dts"
 ]

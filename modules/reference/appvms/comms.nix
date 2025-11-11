@@ -1,9 +1,9 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
-  lib,
   pkgs,
+  lib,
   config,
   ...
 }:
@@ -21,6 +21,11 @@ in
     cores = 4;
     borderColor = "#337aff";
     ghafAudio.enable = true;
+    vtpm = {
+      enable = true;
+      runInVM = config.ghaf.virtualization.storagevm-encryption.enable;
+      basePort = 9130;
+    };
     applications = [
       {
         name = "Element";
@@ -35,6 +40,7 @@ in
             ];
             ghaf.reference.programs.element-desktop.enable = true;
             ghaf.xdghandlers.elementDesktop = true;
+            ghaf.xdgitems.elementDesktop = true;
           }
         ];
       }
@@ -42,13 +48,13 @@ in
         name = "Slack";
         description = "Teams Collaboration & Messaging Application";
         icon = "slack";
-        command = "google-chrome-stable --disable-gpu --enable-features=UseOzonePlatform --ozone-platform=wayland --app=https://app.slack.com/client --profile-directory=SlackProfile ${config.ghaf.givc.idsExtraArgs}";
+        command = "google-chrome-stable --disable-gpu --enable-features=UseOzonePlatform --ozone-platform=wayland --app=https://app.slack.com/client ${config.ghaf.givc.idsExtraArgs}";
       }
       {
         name = "Zoom";
         description = "Zoom Videoconferencing Application";
         icon = "Zoom";
-        command = "google-chrome-stable --disable-gpu --enable-features=UseOzonePlatform --ozone-platform=wayland --app=https://app.zoom.us/wc/home --profile-directory=ZoomProfile ${config.ghaf.givc.idsExtraArgs}";
+        command = "google-chrome-stable --disable-gpu --enable-features=UseOzonePlatform --ozone-platform=wayland --app=https://app.zoom.us/wc/home ${config.ghaf.givc.idsExtraArgs}";
       }
     ];
     extraModules = [
@@ -60,11 +66,14 @@ in
 
         ghaf = {
           reference.programs.google-chrome.enable = true;
+          # Open external URLs locally in comms-vm’s browser instead of forwarding to a dedicated URL-handling VM
+          xdghandlers.url = true;
           xdgitems.enable = true;
           # Disable serial debug console on comms-vm as it makes the serial device owned by
           # 'tty' group. gpsd runs hardcoded with effective gid of 'dialout' group, and thus
           # can't access the device if this is enabled.
           development.usb-serial.enable = mkForce false;
+          storagevm.maximumSize = 100 * 1024; # 100 GB space for comms-vm
         };
 
         # GPSD collects data from GPS and makes it available on TCP port 2947

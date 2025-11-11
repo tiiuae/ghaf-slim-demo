@@ -1,4 +1,4 @@
-# Copyright 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # Hardware information generation service for host systems
@@ -68,7 +68,7 @@ in
             if command -v nvme >/dev/null 2>&1; then
               # Try multiple methods to get NVMe serial
               NVME_SERIAL=$(nvme list -o json 2>/dev/null | jq -r '.Devices[0].SerialNumber // empty' || true)
-              
+
               if [ -z "$NVME_SERIAL" ]; then
                 # Fallback to direct device query
                 for dev in /dev/nvme*n1; do
@@ -85,7 +85,7 @@ in
             if command -v ip >/dev/null 2>&1; then
               # Get first non-loopback interface MAC
               MAC_ADDR=$(ip -j link show 2>/dev/null | jq -r '.[] | select(.operstate == "UP" and .link_type != "loopback") | .address' | head -1 || true)
-              
+
               if [ -z "$MAC_ADDR" ]; then
                 # Fallback to any interface with MAC
                 MAC_ADDR=$(ip -j link show 2>/dev/null | jq -r '.[] | select(.address != null and .link_type != "loopback") | .address' | head -1 || true)

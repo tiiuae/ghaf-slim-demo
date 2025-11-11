@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # Configuration for NVIDIA Jetson Orin AGX/NX reference boards
@@ -20,6 +20,7 @@ in
   imports = [
     #TODO: fix me
     ../../../../hardware/common/usb/vhotplug.nix
+    ../../../../hardware/common/usb/quirks.nix
   ];
   options.ghaf.hardware.nvidia.orin = {
     # Enable the Orin boards
@@ -84,6 +85,7 @@ in
       ];
     };
 
+    ghaf.hardware.usb.quirks.enable = true;
     ghaf.hardware.usb.vhotplug = {
       enable = true;
       rules = [

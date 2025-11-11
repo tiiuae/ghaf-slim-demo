@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { config, lib, ... }:
 let
@@ -14,7 +14,7 @@ in
     #Enabling CUDA on any supported system requires below settings.
     nixpkgs.config.allowUnfree = lib.mkForce true;
     nixpkgs.config.allowBroken = lib.mkForce false;
-    nixpkgs.config.cudaSupport = lib.mkForce true;
+    nixpkgs.config.cudaSupport = lib.mkForce false; # true;
 
     # Enable Opengl
     # Opengl enable is renamed to hardware.graphics.enable

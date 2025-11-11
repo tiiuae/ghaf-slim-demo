@@ -1,4 +1,4 @@
-# Copyright 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 { lib, ... }:
@@ -30,7 +30,7 @@ in
               type = types.nullOr types.str;
               default = null;
             };
-            path = mkOption {
+            execPath = mkOption {
               description = "Path to the executable to be launched";
               type = types.path;
             };

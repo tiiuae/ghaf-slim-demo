@@ -1,4 +1,4 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # i.MX8M Plus Evaluation Kit
@@ -11,14 +11,12 @@
 let
   inherit (inputs) nixos-hardware;
   name = "nxp-imx8mp-evk";
-  system = "aarch64-linux";
   nxp-imx8mp-evk =
     variant: extraModules:
     let
       hostConfiguration = lib.nixosSystem {
-        inherit system;
         specialArgs = {
-          inherit lib;
+          inherit (self) lib;
         };
         modules = [
           nixos-hardware.nixosModules.nxp-imx8mp-evk
@@ -50,6 +48,7 @@ let
             };
 
             nixpkgs = {
+              buildPlatform.system = "x86_64-linux";
               # Increase the support for different devices by allowing the use
               # of proprietary drivers from the respective vendors
               config = {

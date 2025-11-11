@@ -1,9 +1,0 @@
-// SPDX-FileCopyrightText: 2022-2025 TII (SSRC) and the Ghaf contributors
-// SPDX-License-Identifier: Apache-2.0
-{
-  "name": "fi.ssrc.open_normal",
-  "description": "Open link in normal browser",
-  "path": "PATH_HERE",
-  "type": "stdio",
-  "allowed_origins": ["chrome-extension://EXTENSION_ID/"]
-}

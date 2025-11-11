@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # TODO: Refactor even more.
@@ -13,7 +13,6 @@
   ...
 }:
 let
-  inherit (builtins) attrNames;
   inherit (lib)
     mkOption
     types
@@ -147,7 +146,7 @@ in
         ] config)
         {
           common = {
-            vms = attrNames config.microvm.vms;
+            vms = builtins.attrNames config.microvm.vms;
             adminHost =
               let
                 adminHosts = lib.lists.remove "" (

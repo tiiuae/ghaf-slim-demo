@@ -1,4 +1,4 @@
-# Copyright 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   buildNpmPackage,
@@ -71,6 +71,6 @@ buildNpmPackage (_finalAttrs: {
     runHook postInstall
   '';
 
-  npmDepsHash = "sha256-tlG2vRHxEzaQvbUjzm3D8SR94va1BWv1+u8bqszdpq0=";
+  npmDepsHash = "sha256-hG5sbFsp89vjdmJAZdazqzv1eUMxcmTsyWDcTRb3gWU=";
 
 })

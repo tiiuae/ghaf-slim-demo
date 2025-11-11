@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -7,9 +7,7 @@
 }:
 let
   cfg = config.ghaf.givc.host;
-  inherit (builtins) map;
   inherit (lib)
-    head
     mkEnableOption
     mkIf
     optionalString
@@ -42,7 +40,7 @@ in
       systemVms = map (vmName: "microvm@${vmName}.service") config.ghaf.common.systemHosts;
       appVms = map (vmName: "microvm@${vmName}.service") config.ghaf.common.appHosts;
       tls.enable = config.ghaf.givc.enableTls;
-      admin = head config.ghaf.givc.adminConfig.addresses;
+      admin = lib.head config.ghaf.givc.adminConfig.addresses;
     };
 
     givc.tls = {

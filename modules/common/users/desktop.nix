@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -9,14 +9,14 @@
 let
   cfg = config.ghaf.users;
   inherit (lib)
+    getExe
+    mkEnableOption
     mkIf
-    types
     mkMerge
     mkOption
-    mkEnableOption
-    optionalString
     optionalAttrs
-    concatStringsSep
+    optionalString
+    types
     ;
 
   loginUserAccount = types.submodule {
@@ -37,12 +37,12 @@ let
       };
       homeSize = mkOption {
         description = ''
-          Size of the home directory for the login user in MB (integer).
+          Size of the home directory for the login user in MiB (integer).
           The integer size is inherited from the microvm volume size parameter.
-          Defaults to 800 GB (800000 MB).
+          Defaults to 400 GiB.
         '';
         type = types.int;
-        default = 800000;
+        default = 400 * 1024;
       };
       fidoAuth = mkEnableOption "FIDO authentication for the login user.";
       createRecoveryKey = mkEnableOption "Recovery key for the login user";
@@ -62,6 +62,17 @@ let
         default = [ ];
       };
     };
+  };
+
+  checkUserExists = pkgs.writeShellApplication {
+    name = "check-user-exists";
+    text = ''
+      if ls /var/lib/systemd/home/*.identity > /dev/null 2>&1; then
+        exit 1
+      else
+        exit 0
+      fi
+    '';
   };
 
 in
@@ -163,6 +174,9 @@ in
         services = {
           systemd-homed.serviceConfig.Restart = "on-failure";
 
+          # Disable systemds' default firstboot user setup
+          systemd-firstboot.enable = false;
+
           # First boot login user setup service
           setup-ghaf-user =
             let
@@ -242,7 +256,7 @@ in
                   --storage=luks \
                   --recovery-key=${lib.boolToString cfg.loginUser.createRecoveryKey} \
                   --luks-pbkdf-type=argon2id \
-                  --fs-type=btrfs \
+                  --fs-type=ext4 \
                   --enforce-password-policy=true \
                   --fido2-device="$FIDO_SUPPORT" \
                   --drop-caches=true \
@@ -255,7 +269,7 @@ in
                   --member-of=users${
                     optionalString (
                       cfg.loginUser.extraGroups != [ ]
-                    ) ",${concatStringsSep "," cfg.loginUser.extraGroups}"
+                    ) ",${lib.concatStringsSep "," cfg.loginUser.extraGroups}"
                   }; then
                     echo "An error occurred while creating the user account. Please try again." >&2
                 ''
@@ -305,9 +319,6 @@ in
                   esac
 
                   done # until $SETUP_COMPLETE
-
-                   # Lock user creation script
-                  install -m 000 /dev/null /var/lib/nixos/user.lock
                 '';
               };
             in
@@ -317,7 +328,6 @@ in
               requiredBy = [ "multi-user.target" ];
               before = [ "greetd.service" ];
               path = [ userSetupScript ];
-              unitConfig.ConditionPathExists = "!/var/lib/nixos/user.lock";
               serviceConfig = {
                 Type = "oneshot";
                 StandardInput = "tty";
@@ -327,6 +337,7 @@ in
                 TTYReset = true;
                 TTYVHangup = true;
                 ExecStart = "${userSetupScript}/bin/setup-ghaf-user";
+                ExecCondition = "${getExe checkUserExists}";
                 Restart = "on-failure";
               };
             };
@@ -364,14 +375,10 @@ in
                   --member-of=users${
                     optionalString (
                       cfg.loginUser.extraGroups != [ ]
-                    ) ",${concatStringsSep "," cfg.loginUser.extraGroups}"
+                    ) ",${lib.concatStringsSep "," cfg.loginUser.extraGroups}"
                   }
 
-                  # Lock user creation script
-                  install -m 000 /dev/null /var/lib/nixos/user.lock
                   echo "User $USERNAME created."
-
-                  # Stop interactive user setup service
                   systemctl stop setup-ghaf-user
                 '';
               };
@@ -380,10 +387,10 @@ in
               description = "Automated boot user setup script";
               enable = true;
               path = [ automatedUserSetupScript ];
-              unitConfig.ConditionPathExists = "!/var/lib/nixos/user.lock";
               serviceConfig = {
                 Type = "oneshot";
                 ExecStart = "${automatedUserSetupScript}/bin/setup-test-user";
+                ExecCondition = "${getExe checkUserExists}";
               };
             };
         };

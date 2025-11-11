@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   lib,
@@ -15,8 +15,9 @@ let
     name: som: variant: extraModules:
     let
       hostConfiguration = lib.nixosSystem {
-        inherit system;
-        specialArgs = inputs;
+        specialArgs = inputs // {
+          inherit (self) lib;
+        };
         modules = [
           self.nixosModules.profiles-orin
           {
@@ -43,7 +44,7 @@ let
             };
 
             nixpkgs = {
-              hostPlatform.system = "aarch64-linux";
+              hostPlatform.system = system;
 
               # Increase the support for different devices by allowing the use
               # of proprietary drivers from the respective vendors

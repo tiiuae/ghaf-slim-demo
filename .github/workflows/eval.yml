@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -35,7 +35,7 @@ jobs:
             cancel-in-progress: true
         steps:
             - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+              uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
               with:
                   egress-policy: audit
 
@@ -46,7 +46,7 @@ jobs:
                   fetch-depth: 0
                   persist-credentials: false
             - name: Install nix
-              uses: cachix/install-nix-action@9280e7aca88deada44c930f1e2c78e21c3ae3edd # v31.7.0
+              uses: cachix/install-nix-action@7ec16f2c061ab07b235a7245e06ed46fe9a1cab6 # v31.8.3
             - name: Evaluate (jobid=${{ matrix.jobid }})
               run: |
                   echo "JOB_TOTAL: ${JOB_TOTAL}"

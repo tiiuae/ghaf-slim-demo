@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { nodes, pkgs, ... }:
 let
@@ -51,6 +51,6 @@ in
 
   print("Blacklisted IPs:", blacklisted_ips)
   for ip in source_ips:
-    assert ip in blacklisted_ips, f"{ip} not found in BLACKLIST ipset!" 
+    assert ip in blacklisted_ips, f"{ip} not found in BLACKLIST ipset!"
 
 ''

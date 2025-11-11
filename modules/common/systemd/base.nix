@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -30,11 +30,11 @@ let
         withCompression = true;
         withCoredump = cfg.withDebug || cfg.withMachines;
         withCryptsetup = cfg.withCryptsetup || cfg.withHomed;
-        withOpenSSL = cfg.withFido2 || cfg.withHomed;
         inherit (cfg) withEfi;
         inherit (cfg) withBootloader;
         inherit (cfg) withFido2;
         inherit (cfg) withHomed;
+        inherit (cfg) withOpenSSL;
         inherit (cfg) withHostnamed;
         withImportd = cfg.withMachines;
         withKexectools = cfg.withDebug;
@@ -60,6 +60,7 @@ let
         withUserDb = cfg.withHomed;
         withUtmp = cfg.withJournal || cfg.withAudit;
         inherit (cfg) withSysupdate;
+        inherit (cfg) withHwdb;
       }
       // lib.optionalAttrs (lib.strings.versionAtLeast pkgs.systemdMinimal.version "255.0") {
         withVmspawn = cfg.withMachines;
@@ -264,6 +265,12 @@ in
       default = pkgs.stdenv.hostPlatform.isEfi;
     };
 
+    withOpenSSL = mkOption {
+      description = "Enable systemd OpenSSL functionality.";
+      type = types.bool;
+      default = cfg.withFido2 || cfg.withHomed;
+    };
+
     withUkify = mkOption {
       description = "Enable systemd UKI functionality.";
       type = types.bool;
@@ -346,6 +353,12 @@ in
       description = "Enable systemd debug functionality.";
       type = types.bool;
       default = false;
+    };
+
+    withHwdb = mkOption {
+      description = "Enable systemd hwdb functionality.";
+      type = types.bool;
+      default = true;
     };
 
     logLevel = mkOption {

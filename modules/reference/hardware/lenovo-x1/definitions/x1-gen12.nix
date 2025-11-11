@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
@@ -8,6 +8,7 @@
   # List of system SKUs covered by this configuration
   skus = [
     "LENOVO_MT_21KC_BU_Think_FM_ThinkPad X1 Carbon Gen 12 21KC006CMX"
+    "LENOVO_MT_21KD_BU_Think_FM_ThinkPad X1 Carbon Gen 12 21KDS87D00"
     # TODO Add more SKUs
   ];
 
@@ -48,13 +49,6 @@
         vendorId = "8086";
         productId = "7d45";
       }
-      {
-        # Communication controller [0780]: Intel Corporation Device [8086:7e70] (rev 20)
-        # mei_me (DDC/HDCP/EDID)
-        path = "0000:00:16.0";
-        vendorId = "8086";
-        productId = "7e70";
-      }
     ];
     kernelConfig = {
       stage1.kernelModules = [
@@ -71,10 +65,6 @@
   #   00:1f.x in the example from Lenovo X1 Carbon
   #   must be defined for passthrough to AudioVM
   audio = {
-    # Force a PCI device reset to the audio device
-    # This is to get the pci hardware device to the default state at shutdown
-    removePciDevice = "0000:00:1f.3";
-
     pciDevices = [
       {
         # ISA bridge: Intel Corporation Device 7e03 (rev 20)

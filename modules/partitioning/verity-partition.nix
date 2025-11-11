@@ -1,4 +1,4 @@
-# Copyright 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -141,9 +141,9 @@ in
           };
       }
       // builtins.listToAttrs (
-        builtins.map
-          (path: {
-            name = path;
+        map
+          (pathDir: {
+            name = pathDir;
             value = tmpfsConfig;
           })
           [

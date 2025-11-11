@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   # System name
@@ -72,9 +72,6 @@
 
   # Audio device for passthrough to audiovm
   audio = {
-    removePciDevice = "0000:00:1f.3";
-    rescanPciDevice = "0000:00:1f.0";
-    acpiPath = "/sys/firmware/acpi/tables/NHLT";
     pciDevices = [
       {
         # ISA bridge: Intel Corporation Alder Lake LPC Controller (rev 01)

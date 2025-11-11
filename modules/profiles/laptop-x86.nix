@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { config, lib, ... }:
 let
@@ -32,6 +32,7 @@ in
         tpm2.enable = true;
         usb = {
           vhotplug.enable = true;
+          quirks.enable = true;
         };
       };
 

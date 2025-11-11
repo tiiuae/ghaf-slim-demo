@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2022-2024 TII (SSRC) and the Ghaf contributors
+SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 
 SPDX-License-Identifier: CC-BY-SA-4.0
 -->
@@ -30,7 +30,7 @@ It makes things clear and robust.
 # Upstream PR and commit tracking
 
 Some patches are carried as overlays and others are patches that are cherry-picked
-from staging and main into a tiiuae maintained version of nixpkgs 
+from staging and main into a tiiuae maintained version of nixpkgs
 [tiiuae/nixpkgs/...](https://github.com/tiiuae/nixpkgs/)
 
 The status of the integration in nixpkgs can be tracked using the [Pull Request Tracker](https://nixpk.gs/pr-tracker.html)

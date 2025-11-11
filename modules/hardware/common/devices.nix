@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   pkgs,
@@ -10,7 +10,6 @@ let
   inherit (lib)
     concatMapStringsSep
     flatten
-    length
     imap1
     getExe
     mkOption
@@ -57,8 +56,8 @@ let
 
   # Offsets for the PCI root ports
   nicPortOffset = config.ghaf.hardware.usb.vhotplug.pciePortCount;
-  gpuPortOffset = nicPortOffset + (length nicPciDevices);
-  sndPortOffset = gpuPortOffset + (length gpuPciDevices);
+  gpuPortOffset = nicPortOffset + (lib.length nicPciDevices);
+  sndPortOffset = gpuPortOffset + (lib.length gpuPciDevices);
 
 in
 {

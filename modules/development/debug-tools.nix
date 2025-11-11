@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -69,6 +69,9 @@ in
       sysbench-fileio-test-script
       nvpmodel-check
       rm-linux-bootmgrs
+
+      # To inspect LUKS partitions metadata
+      pkgs.cryptsetup
     ]
     # v4l for camera testing
     ++ rmDesktopEntries [ pkgs.v4l-utils ]
@@ -91,7 +94,7 @@ in
       pkgs.vlc
       pkgs.ffmpeg_7-full
       pkgs.kitty.terminfo
-      pkgs.ghostty.terminfo
+      #pkgs.ghostty.terminfo
     ]);
 
     programs = {

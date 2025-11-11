@@ -1,4 +1,4 @@
-# Copyright 2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -27,7 +27,7 @@ let
     ${pkgs.ghaf-nw-packet-forwarder}/bin/nw-pckt-fwd \
     --external-iface ${cfg.externalNic} \
     --internal-iface ${cfg.internalNic} \
-    --internal-ip ${cfg.internalIp} ${chromecastFlags}  
+    --internal-ip ${cfg.internalIp} ${chromecastFlags}
   '';
 in
 {

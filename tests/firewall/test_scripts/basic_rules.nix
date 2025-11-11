@@ -1,4 +1,4 @@
-# Copyright 2022-2025 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { nodes, pkgs, ... }:
 ''
@@ -108,7 +108,7 @@
   with subtest("INPUT rules"):
     # Loopback test
     netVM.succeed("ping -c 5 -I lo 127.0.0.1")
-    
+
     # icmp test
     num_icmp_packets =20
     num_firewall_burst_allow = 5
@@ -117,5 +117,5 @@
     filter_drop_log = netVM.execute("sudo journalctl | grep -E 'ghaf-fw-filter-drop:'")
     count_entries_with_exact_flags(filter_drop_log[1], expected_flags = [""], expected_count=num_icmp_packets-num_firewall_burst_allow, expected_proto="ICMP")
 
-    
+
 ''

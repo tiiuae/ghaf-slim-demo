@@ -1,8 +1,9 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
   pkgs,
+  config,
   ...
 }:
 {
@@ -11,6 +12,11 @@
     cores = 2;
     bootPriority = "low";
     borderColor = "#027d7b";
+    vtpm = {
+      enable = true;
+      runInVM = config.ghaf.virtualization.storagevm-encryption.enable;
+      basePort = 9140;
+    };
     applications = [
       {
         name = "GALA";

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 {
   config,
@@ -29,7 +29,7 @@ let
       inherit (cfgBase) withRepart;
       inherit (cfgBase) withTpm2Tss;
       inherit (cfgBase) withUkify;
-      withOpenSSL = cfgBase.withFido2;
+      inherit (cfgBase) withOpenSSL;
     }
     // lib.optionalAttrs (lib.strings.versionAtLeast pkgs.systemdMinimal.version "255.0") {
       withQrencode = true; # Required for systemd-bsod, which is currently hardcoded in nixos

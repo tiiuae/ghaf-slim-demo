@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
@@ -23,9 +23,9 @@
 
   ProtectHome = true;
   ProtectSystem = "strict";
-  ProtectProc = "invisible";
+  # ProtectProc = "invisible"; #inherit from nixos modules security systemd modules
   # ReadWritePaths=[ "/etc"];
-  PrivateTmp = true;
+  # PrivateTmp = "disconnected"; #inherit from nixos modules security systemd modules
 
   # Not applicable for the service runs as root
   # PrivateMounts=true;

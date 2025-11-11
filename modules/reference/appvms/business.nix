@@ -1,17 +1,16 @@
-# Copyright 2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 {
   pkgs,
-  config,
   lib,
+  config,
   ...
 }:
 let
   inherit (lib)
     optionals
     getExe
-    mkIf
     ;
   enableOpenNormalExtension = true;
 in
@@ -22,7 +21,11 @@ in
     cores = 4;
     borderColor = "#218838";
     ghafAudio.enable = true;
-    vtpm.enable = true;
+    vtpm = {
+      enable = true;
+      runInVM = config.ghaf.virtualization.storagevm-encryption.enable;
+      basePort = 9110;
+    };
     applications =
       let
         inherit (config.microvm.vms."business-vm".config.config.ghaf.reference.services.pac) proxyPacUrl;
@@ -102,23 +105,15 @@ in
             else
               JQ_FILTER="$BASE_FILTER"
             fi
-
-            # TODO: Remove this block after October 2025
-            # It's only needed to migrate users who installed the extension prior to v1.0.1
-            if ${lib.boolToString enableOpenNormalExtension}; then
-              EXTENSIONS_FILTER='
-                | .extensions |= . // {}
-                | .extensions.pinned_extensions |= (. + ["${pkgs.open-normal-extension.id}"] | unique)
-                | .extensions.settings |= . // {}
-                | .extensions.settings["${pkgs.open-normal-extension.id}"] |= . // {}
-                | .extensions.settings["${pkgs.open-normal-extension.id}"].manifest |= . // {}
-                | .extensions.settings["${pkgs.open-normal-extension.id}"].manifest.update_url |= . // "http://localhost:8080/update.xml"
-              '
-              JQ_FILTER="$JQ_FILTER $EXTENSIONS_FILTER"
-            fi
-            # TODO: Remove this block after October 2025
-
-
+          ''
+          + lib.optionalString enableOpenNormalExtension ''
+            EXTENSIONS_FILTER='
+              | .extensions |= . // {}
+              | .extensions.pinned_extensions |= (. + ["${pkgs.chrome-extensions.open-normal.id}"] | unique)
+            '
+            JQ_FILTER="$JQ_FILTER $EXTENSIONS_FILTER"
+          ''
+          + ''
             debug "jq filter being applied:"
             debug "$JQ_FILTER"
 
@@ -130,6 +125,8 @@ in
             "$CHROME_BIN" --enable-features=UseOzonePlatform \
               --ozone-platform=wayland \
               --disable-gpu \
+              --hide-crash-restore-bubble \
+              --no-first-run \
               ${config.ghaf.givc.idsExtraArgs} \
               --proxy-pac-url=${proxyPacUrl} "$@"
           '';
@@ -141,7 +138,7 @@ in
           description = "Isolated Trusted Browsing";
           packages = [ trustedBrowserWrapper ];
           icon = "thorium-browser";
-          command = "trusted-browser-wrapper --profile-directory=TrustedBrowserProfile";
+          command = "trusted-browser-wrapper";
           givcArgs = [
             "url"
           ];
@@ -164,6 +161,10 @@ in
                   programs.google-chrome = {
                     enable = chromePackage == pkgs.google-chrome;
                     openInNormalExtension = enableOpenNormalExtension;
+
+                    extensions = [
+                      pkgs.chrome-extensions.session-buddy
+                    ];
                   };
                   programs.chromium = {
                     enable = chromePackage == pkgs.chromium;
@@ -171,7 +172,11 @@ in
                   };
                 };
 
+                storagevm.maximumSize = 100 * 1024; # 100 GB space for business-vm
+
                 xdgitems.enable = true;
+                # Open external URLs locally in business-vm’s browser instead of forwarding to a dedicated URL-handling VM
+                xdghandlers.url = true;
                 security.apparmor.enable = true;
               };
             }
@@ -181,25 +186,25 @@ in
           name = "Microsoft Outlook";
           description = "Microsoft Email Client";
           icon = "ms-outlook";
-          command = "trusted-browser-wrapper --app=https://outlook.office.com/mail/ --profile-directory=OutlookProfile";
+          command = "trusted-browser-wrapper --app=https://outlook.office.com/mail/";
         }
         {
           name = "Microsoft 365";
           description = "Microsoft 365 Software Suite";
           icon = "microsoft-365";
-          command = "trusted-browser-wrapper --app=https://microsoft365.com --profile-directory=M365Profile";
+          command = "trusted-browser-wrapper --app=https://microsoft365.com";
         }
         {
           name = "Teams";
           description = "Microsoft Teams Collaboration Application";
           icon = "teams-for-linux";
-          command = "trusted-browser-wrapper --app=https://teams.microsoft.com --profile-directory=TeamsProfile";
+          command = "trusted-browser-wrapper --app=https://teams.microsoft.com";
         }
         {
           name = "Gala";
           description = "Secure Android-in-the-Cloud";
           icon = "distributor-logo-android";
-          command = "trusted-browser-wrapper --app=https://gala.atrc.azure-atrc.androidinthecloud.net/#/login --profile-directory=GalaProfile";
+          command = "trusted-browser-wrapper --app=https://gala.atrc.azure-atrc.androidinthecloud.net/#/login";
         }
         {
           name = "VPN";
@@ -307,28 +312,6 @@ in
           # Enable WireGuard GUI
           wireguard-gui.enable = config.ghaf.reference.services.wireguard-gui;
 
-        };
-
-        # '--load-extension' flag is available only in non-Chrome branded Chromium
-        # as of v137, with the only possible workaround removed in v139
-        # refs:
-        # https://groups.google.com/a/chromium.org/g/chromium-extensions/c/1-g8EFx2BBY/m/S0ET5wPjCAAJ
-        # https://groups.google.com/a/chromium.org/g/chromium-extensions/c/FxMU1TvxWWg/m/daZVTYNlBQAJ
-        #
-        # Therefore we load the extension via 'ExtensionInstallForcelist' policy
-        # A mock extension update server is needed for this to work
-        # ref: https://chromeenterprise.google/policies/#ExtensionInstallForcelist
-        systemd.services.chrome-extension-server = mkIf enableOpenNormalExtension {
-          enable = true;
-          description = "Local Chrome extension update server";
-          after = [ "network.target" ];
-          wantedBy = [ "multi-user.target" ];
-
-          serviceConfig = {
-            ExecStart = "${getExe pkgs.python3} -m http.server 8080 --directory ${pkgs.open-normal-extension}/share";
-            WorkingDirectory = "${pkgs.open-normal-extension}/share";
-            Restart = "always";
-          };
         };
       }
     ];

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # Polarfire Enablement Kit
@@ -11,12 +11,13 @@
 let
   inherit (inputs) nixos-hardware;
   name = "microchip-icicle-kit";
-  system = "riscv64-linux";
   microchip-icicle-kit =
     variant: extraModules:
     let
       hostConfiguration = lib.nixosSystem {
-        inherit system;
+        specialArgs = {
+          inherit (self) lib;
+        };
         modules = [
           nixos-hardware.nixosModules.microchip-icicle-kit
           self.nixosModules.microvm

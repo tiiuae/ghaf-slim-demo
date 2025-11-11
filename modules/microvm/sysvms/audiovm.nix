@@ -1,4 +1,4 @@
-# Copyright 2022-2024 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { inputs }:
 {
@@ -14,6 +14,7 @@ let
     imports = [
       inputs.preservation.nixosModules.preservation
       inputs.self.nixosModules.givc
+      inputs.self.nixosModules.hardware-x86_64-guest-kernel
       inputs.self.nixosModules.vm-modules
       inputs.self.nixosModules.profiles
       (
@@ -54,11 +55,16 @@ let
             storagevm = {
               enable = true;
               name = vmName;
+              encryption.enable = configHost.ghaf.virtualization.storagevm-encryption.enable;
             };
             # Networking
             virtualization.microvm.vm-networking = {
               enable = true;
               inherit vmName;
+            };
+            virtualization.microvm.tpm.passthrough = {
+              inherit (configHost.ghaf.virtualization.storagevm-encryption) enable;
+              rootNVIndex = "0x81702000";
             };
             # Services
             services = {

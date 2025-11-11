@@ -1,4 +1,4 @@
-# Copyright 2022-2023 TII (SSRC) and the Ghaf contributors
+# SPDX-FileCopyrightText: 2022-2026 TII (SSRC) and the Ghaf contributors
 # SPDX-License-Identifier: Apache-2.0
 { inputs }:
 {
@@ -15,6 +15,7 @@ let
       inputs.preservation.nixosModules.preservation
       inputs.self.nixosModules.vm-modules
       inputs.self.nixosModules.givc
+      inputs.self.nixosModules.hardware-x86_64-guest-kernel
       inputs.self.nixosModules.profiles
       (
         { lib, ... }:
